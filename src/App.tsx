@@ -108,8 +108,22 @@ export default function App() {
         });
 
         if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || '관심종목 분석에 실패했습니다.');
+          let errMsg = `관심종목 분석에 실패했습니다. (상태 코드: ${response.status})`;
+          try {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const errData = await response.json();
+              if (errData.error) errMsg = errData.error;
+            }
+          } catch {
+            // non-json response body ignore
+          }
+          throw new Error(errMsg);
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('서버가 준비 중이거나 응답 형식(JSON)이 올바르지 않습니다. 잠시 후 다시 시도해주세요.');
         }
 
         const data: AnalysisResponse = await response.json();
@@ -166,20 +180,23 @@ export default function App() {
         });
 
         if (response.ok && isSubscribed) {
-          const data: AnalysisResponse = await response.json();
-          setSurgingStocks(data.surgingStocks);
-          setPlungingStocks(data.plungingStocks);
-          setUnmovedCount(data.unmovedCount);
-          setLastUpdated(data.timestamp);
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data: AnalysisResponse = await response.json();
+            setSurgingStocks(data.surgingStocks);
+            setPlungingStocks(data.plungingStocks);
+            setUnmovedCount(data.unmovedCount);
+            setLastUpdated(data.timestamp);
 
-          // If a detail modal is open, keep its numbers in sync
-          setSelectedStock((current) => {
-            if (!current) return null;
-            const updated =
-              data.surgingStocks.find((s) => s.code === current.code) ||
-              data.plungingStocks.find((s) => s.code === current.code);
-            return updated || current;
-          });
+            // If a detail modal is open, keep its numbers in sync
+            setSelectedStock((current) => {
+              if (!current) return null;
+              const updated =
+                data.surgingStocks.find((s) => s.code === current.code) ||
+                data.plungingStocks.find((s) => s.code === current.code);
+              return updated || current;
+            });
+          }
         }
       } catch {
         // Silently skip transient network glitches to preserve UI smoothness

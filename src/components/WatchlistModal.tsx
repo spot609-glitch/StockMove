@@ -97,19 +97,22 @@ export const WatchlistModal: React.FC<WatchlistModalProps> = ({
       try {
         const res = await fetch(`/api/lookup-stock?q=${encodeURIComponent(trimmed)}`);
         if (res.ok && active) {
-          const data = await res.json();
-          if (data.found && data.stock) {
-            setServerLookup({
-              query: trimmed,
-              loading: false,
-              stock: {
-                name: data.stock.name,
-                code: data.stock.code,
-                market: data.stock.market,
-                sector: data.stock.sector,
-              },
-            });
-            return;
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data.found && data.stock) {
+              setServerLookup({
+                query: trimmed,
+                loading: false,
+                stock: {
+                  name: data.stock.name,
+                  code: data.stock.code,
+                  market: data.stock.market,
+                  sector: data.stock.sector,
+                },
+              });
+              return;
+            }
           }
         }
       } catch (err) {
