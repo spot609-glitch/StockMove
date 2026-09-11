@@ -1,0 +1,6 @@
+{
+  "name": "Stock Move Finder",
+  "description": "개인 투자자를 위한 관심종목 급등·급락 탐지 및 3단어 핵심 원인 분석 모니터링 대시보드",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
